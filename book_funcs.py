@@ -95,3 +95,17 @@ def category_embedding(df,trans_model=None,col ='Category'):
     df_category=df_category.rename(columns = {0:col})
     df = pd.merge(df, df_category, on = col, how = "left")
     return df
+from sklearn.decomposition import PCA
+def pca_mbedding(df,comp=230):
+    df = df.drop(['Embedding_cat_x','Embedding_cat_y'],axis=1)
+    embeded_cols = [col for col in df.columns if ('Embedding' in col)]
+    not_embeded_cols = [col for col in df.columns if ('Embedding' not in col)]
+    df_embeding = df.drop(not_embeded_cols,axis=1)
+    df = df.drop(embeded_cols,axis=1)
+    pca = PCA()
+    df_embeding = pca.fit_transform(df_embeding)
+    df_embeding_df = pd.DataFrame(df_embeding)
+    df_embeding_df = df_embeding_df.drop([i for i in range(230,768)],axis=1)
+    df = pd.merge(df.reset_index(), df_embeding_df.reset_index(), on = 'index', how = "left")
+    df = df.drop('index',axis =1)
+    return df
