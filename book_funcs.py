@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import pandas as pd
+from sentence_transformers import SentenceTransformer
 
 
 def category_cleaner(df):
@@ -79,4 +80,18 @@ def category_compliter(df):
 def zero_droper(df):
     df = df[df['rating']>0]
     df.reset_index(inplace = True, drop = True)
+    return df
+
+def category_embedding(df,trans_model=None,col ='Category'):
+    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    if trans_model:
+        model = SentenceTransformer(trans_model)
+    df_category = pd.DataFrame(df[col].unique())
+    # Encode category names into embeddings
+    category_embeddings = model.encode(df_category[0], show_progress_bar=True)
+    df_category['Embedding_cat'] = category_embeddings.tolist()
+    for i in range(len(category_embeddings[0])):
+        df_category[f'Embedding_{col}{i}'] = df_category['Embedding_cat'].apply(lambda arr: arr[i])
+    df_category=df_category.rename(columns = {0:col})
+    df = pd.merge(df, df_category, on = col, how = "left")
     return df
