@@ -76,3 +76,7 @@ def category_compliter(df):
     df = df.drop(['index', 'Unnamed: 0'], axis=1)
     return df
 
+def zero_droper(df):
+    df = df[df['rating']>0]
+    df.reset_index(inplace = True, drop = True)
+    return df
