@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import pandas as pd
+from sentence_transformers import SentenceTransformer
 
 
 def category_cleaner(df):
@@ -80,9 +81,3 @@ def zero_droper(df):
     df = df[df['rating']>0]
     df.reset_index(inplace = True, drop = True)
     return df
-
-#create a function to check for nulls 
-def precentage_null(df):
-    null_count = df.isnull().sum()
-    total_count = len(df)
-    print((null_count/total_count) * 100)
