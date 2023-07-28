@@ -87,3 +87,31 @@ def precentage_null(df):
     total_count = len(df)
     precentage_nulls = (null_count / total_count) * 100
     print(precentage_nulls)
+
+def category_embedding(df,trans_model=None,col ='Category'):
+    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    if trans_model:
+        model = SentenceTransformer(trans_model)
+    df_category = pd.DataFrame(df[col].unique())
+    # Encode category names into embeddings
+    category_embeddings = model.encode(df_category[0], show_progress_bar=True)
+    df_category['Embedding_cat'] = category_embeddings.tolist()
+    for i in range(len(category_embeddings[0])):
+        df_category[f'Embedding_{col}{i}'] = df_category['Embedding_cat'].apply(lambda arr: arr[i])
+    df_category=df_category.rename(columns = {0:col})
+    df = pd.merge(df, df_category, on = col, how = "left")
+    return df
+from sklearn.decomposition import PCA
+def pca_mbedding(df,comp=230):
+    df = df.drop(['Embedding_cat_x','Embedding_cat_y'],axis=1)
+    embeded_cols = [col for col in df.columns if ('Embedding' in col)]
+    not_embeded_cols = [col for col in df.columns if ('Embedding' not in col)]
+    df_embeding = df.drop(not_embeded_cols,axis=1)
+    df = df.drop(embeded_cols,axis=1)
+    pca = PCA()
+    df_embeding = pca.fit_transform(df_embeding)
+    df_embeding_df = pd.DataFrame(df_embeding)
+    df_embeding_df = df_embeding_df.drop([i for i in range(230,768)],axis=1)
+    df = pd.merge(df.reset_index(), df_embeding_df.reset_index(), on = 'index', how = "left")
+    df = df.drop('index',axis =1)
+    return df
