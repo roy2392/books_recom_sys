@@ -81,3 +81,9 @@ def zero_droper(df):
     df = df[df['rating']>0]
     df.reset_index(inplace = True, drop = True)
     return df
+
+def precentage_null(df):
+    null_count = df.isnull().sum()
+    total_count = len(df)
+    precentage_nulls = (null_count / total_count) * 100
+    print(precentage_nulls)
