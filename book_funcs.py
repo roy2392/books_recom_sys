@@ -115,3 +115,15 @@ def pca_mbedding(df,comp=230):
     df = pd.merge(df.reset_index(), df_embeding_df.reset_index(), on = 'index', how = "left")
     df = df.drop('index',axis =1)
     return df
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import FunctionTransformer
+
+def reader_encode(df,y=None):
+
+    cat_var = ['Language','country']
+    one_hot = OneHotEncoder(sparse=False)  # , drop = 'first')
+    encoder_var_array = one_hot.fit_transform(df[cat_var])
+    encoder_name = one_hot.get_feature_names_out(cat_var)
+    encoder_vars_df = pd.DataFrame(encoder_var_array, columns=encoder_name)
+    df = pd.concat([df, encoder_vars_df], axis=1)
+    return df
