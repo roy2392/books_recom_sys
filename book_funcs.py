@@ -185,7 +185,7 @@ def rated_books(df, reader_id):
     }
     df_reader = df.loc[df['user_id'] == reader_id]
     fig, axs = plt.subplots(1, min(5, len(df_reader)), figsize=(18, 5))
-    fig.suptitle('Yours preveus ratings:', size=22)
+    fig.suptitle('Yours previous ratings:', size=22)
     print(len(df_reader))
     for i in range(min(5, len(df_reader))):
         img_url = df_reader.iloc[i]['img_l']
