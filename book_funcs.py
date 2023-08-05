@@ -168,3 +168,106 @@ def precision_recall_at_k(predictions, k=10, threshold=3.5):
         #recalls[uid] = n_rel_and_rec_k / n_rel if n_rel != 0 else 1
 
     return precisions, recalls
+
+
+# recomending func:
+import warnings
+
+warnings.filterwarnings('ignore')
+import requests
+from PIL import Image
+import matplotlib.pyplot as plt
+
+
+def rated_books(df, reader_id):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
+    df_reader = df.loc[df['user_id'] == reader_id]
+    fig, axs = plt.subplots(1, min(5, len(df_reader)), figsize=(18, 5))
+    fig.suptitle('Yours preveus ratings:', size=22)
+    print(len(df_reader))
+    for i in range(min(5, len(df_reader))):
+        img_url = df_reader.iloc[i]['img_l']
+
+        try:
+            response = requests.get(img_url, headers=headers, stream=True)
+
+            response.raise_for_status()  # Check if the request was successful
+
+            # Open the image from the response content (bytes) and convert to RGB mode
+            raw_image = Image.open(response.raw).convert('RGB')
+
+            # You can perform further processing with the `raw_image` object here
+
+        except requests.exceptions.RequestException as e:
+            raw_image = 'eror'  # לשים פה תמונה של מסך שחור
+            # print(f"Error fetching the image from the URL: {e}")
+            continue
+        except Image.UnidentifiedImageError:
+            raw_image = 'eror'  # לשים פה תמונה של מסך שחור
+            # print("Unable to identify the image file. Please check the URL or image format.")
+            continue
+
+        axs[i].imshow(raw_image)
+        axs[i].axis("off")
+        axs[i].set_title('your rating: ' + str(df_reader.iloc[i]['rating'])
+                         , y=-0.18, color="blue", fontsize=12)
+        fig.show()
+    return
+
+
+def deep_recommender(df, reader_id,model,x_train, rec=5):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
+    df_books = df.drop_duplicates(subset='isbn_num', keep="first")
+    df_reader = df.loc[df['user_id'] == reader_id]
+    read_already = list(df_reader['isbn_num'].drop_duplicates())
+    reader_cols = ['user_id'] + list(x_train.columns)[251:]
+    book_cols = set(df_books.columns) - set(reader_cols)
+    df_reader = df_reader.drop(list(book_cols), axis=1)
+    df_books = df_books[~df_books['isbn_num'].isin(read_already)]
+    df_reader = df_reader.iloc[0:1]
+
+    df_books = df_books.drop(list(reader_cols), axis=1)
+    for col in list(df_reader.columns):
+        df_books[col] = df_reader.iloc[0][col]
+
+    pred = model.predict({
+        "user": df_books["user_id"],
+        "book": df_books["isbn_num"],
+        "author": df_books['author_num'],
+        "book_data": df_books[[str(i) for i in range(0, 230)]],
+        'user_data': df_books[list(x_train.columns)[251:]]})
+
+    df_books['pred_score'] = np.mean(pred, axis=1)
+    df_books = df_books.sort_values(by='pred_score', ascending=False)
+
+    # proses to get 5 recommended books
+    fig, axs = plt.subplots(1, rec, figsize=(18, 5))
+    fig.suptitle('You may also like these books', size=22)
+    for i in range(rec):
+        img_url = df_books.iloc[i]['img_l']
+
+        try:
+            response = requests.get(img_url, headers=headers, stream=True)
+            response.raise_for_status()  # Check if the request was successful
+            # Open the image from the response content (bytes) and convert to RGB mode
+            raw_image = Image.open(response.raw).convert('RGB')
+            # You can perform further processing with the `raw_image` object here
+
+        except requests.exceptions.RequestException as e:
+            raw_image = 'eror'  # לשים פה תמונה של מסך שחור
+            # print(f"Error fetching the image from the URL: {e}")
+            continue
+        except Image.UnidentifiedImageError:
+            raw_image = 'eror'  # לשים פה תמונה של מסך שחור
+            # print("Unable to identify the image file. Please check the URL or image format.")
+            continue
+
+        axs[i].imshow(raw_image)
+        axs[i].axis("off")
+        axs[i].set_title('predicted joy: ' + str(df_books.iloc[i]['pred_score'])
+                         , y=-0.18, color="blue", fontsize=12)
+        fig.show()
