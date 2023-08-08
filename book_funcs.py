@@ -129,7 +129,7 @@ def reader_encode(df,y=None):
     return df
 from collections import defaultdict
 
-def precision_recall_at_k(predictions, k=10, threshold=3.5):
+def precision_recall_at_k(predictions, k=10, threshold=8):
     """Return precision and recall at k metrics for each user"""
 
     # First map the predictions to each user.
