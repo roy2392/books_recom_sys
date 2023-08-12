@@ -102,7 +102,7 @@ def category_embedding(df,trans_model=None,col ='Category'):
     df = pd.merge(df, df_category, on = col, how = "left")
     return df
 from sklearn.decomposition import PCA
-def pca_mbedding(df,comp=230):
+def pca_embedding(df,comp=230):
     df = df.drop(['Embedding_cat_x','Embedding_cat_y'],axis=1)
     embeded_cols = [col for col in df.columns if ('Embedding' in col)]
     not_embeded_cols = [col for col in df.columns if ('Embedding' not in col)]
