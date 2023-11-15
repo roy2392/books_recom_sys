@@ -47,9 +47,8 @@ The system is implemented in Python, leveraging popular libraries for data analy
    - Integrate the best-performing models into the main recommendation system.
 
 ## Contributors
-- [Your Name]
-- [Contributor 1]
-- [Contributor 2]
+- Roey Zalta
+- Yotam Aflalo
 
 ## License
 This project is licensed under the [Your License].
